@@ -1,6 +1,8 @@
 import discord
 
 import asyncio
+
+from bot.scraper.browser import close_browser
 from bot.database import schema
 from config import DISCORD_TOKEN
 from discord.ext import commands
@@ -66,6 +68,12 @@ async def on_ready():
     print(f"Synced {len(synced)} commands: {[s.name for s in synced]}")
 
 
-asyncio.run(core.scrape('https://store.steampowered.com/app/2420110/Horizon_Forbidden_West_Complete_Edition/'))
 
-bot.run(DISCORD_TOKEN)
+async def main():
+    try:
+        await core.scrape('https://www.diy.com/departments/4-stroke-lawnmower-oil-1l-ol101/109406_BQ.prd')
+        await bot.start(DISCORD_TOKEN)
+    finally:
+        await bot.close()
+
+asyncio.run(main())
