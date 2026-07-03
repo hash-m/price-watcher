@@ -1,7 +1,5 @@
-import asyncio
-
-from exceptions import ExtractionError
-from bs4        import BeautifulSoup
+from bot.exceptions      import ExtractionError
+from bs4                 import BeautifulSoup
 from bot.scraper.browser import get_context
 from bot.scraper.fetcher import fetch_json
 
@@ -22,6 +20,8 @@ async def extract(html):
     name      = soup.select_one("[data-testid='product-name']")
     
     product_code = get_productcode(soup)
+    if not product_code:
+        assert ExtractionError("bandq","Can't find product code within HTML")
 
     json = await fetch_json(f'https://www.diy.com/browse-mfe/api/fulfilment-options?compositeOfferId={product_code}')
     attributes = json.get("data")[0].get("attributes")
@@ -40,8 +40,8 @@ async def extract(html):
 
 
     return {
-        "Name"       : name.text.strip(),
+        "Name"         : name.text.strip(),
         "InitialPrice" : was_price.find("s").get_text(strip=True) if was_price else None,
-        "FinalPrice" : price.text.strip(),
-        "Available"  : available
+        "FinalPrice"   : price.text.strip(),
+        "Available"    : available
     }

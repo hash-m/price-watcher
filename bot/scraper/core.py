@@ -35,11 +35,11 @@ async def scrape(url):
     try:
         fetch = functions.get("fetch")
         extract = functions.get("extract")
-    except FetchingError, ExtractionError:
+    except (FetchingError, ExtractionError):
         print("raise a scrape fail error for bot to catch and send a message to the user")
         return
  
-    data        = await fetch(url)
+    data = await fetch(url)
     
     if inspect.iscoroutinefunction(extract):
         useful_data = await extract(data)
@@ -47,5 +47,4 @@ async def scrape(url):
         useful_data = extract(data)    
 
     useful_data = format(useful_data)
-    print(useful_data)
     return useful_data

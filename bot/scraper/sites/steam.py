@@ -17,7 +17,7 @@ def extract(json):
     game_id = get_gameid(json)
 
     if not json.get(game_id) or not json.get(game_id).get("success"):
-        raise ExtractionError("steam",f"https://store.steampowered.com/api/appdetails?appids={game_id}&cc=gb","JSON not found")
+        raise ExtractionError("steam",f"JSON not found. #### URL: https://store.steampowered.com/api/appdetails?appids={game_id}&cc=gb")
     
     data           = json.get(game_id).get("data")
     info           = {}
@@ -27,7 +27,7 @@ def extract(json):
     info["Name"]   = data.get("name")
 
     if release_date:
-        info["Available"]   = not release_date.get("coming_soon")
+        info["Available"] = not release_date.get("coming_soon")
     
     if price_overview:
         info["InitialPrice"] = price_overview.get("initial_formatted")

@@ -1,13 +1,12 @@
 import discord
-
 import asyncio
 
 from bot.scraper.browser import close_browser
 from bot.database import schema
+from bot.scheduler.poller import start_polling
 from config import DISCORD_TOKEN
 from discord.ext import commands
 from discord import app_commands
-from scraper import core
 
 
 
@@ -71,9 +70,14 @@ async def on_ready():
 
 async def main():
     try:
-        await core.scrape('https://www.diy.com/departments/4-stroke-lawnmower-oil-1l-ol101/109406_BQ.prd')
+        await schema.init()
+        await schema.create_tables()
+        stop_event = asyncio.Event()
+        polling_task = asyncio.create_task(start_polling(stop_event))
         await bot.start(DISCORD_TOKEN)
     finally:
+        stop_event.set()
+        await polling_task
         await bot.close()
 
 asyncio.run(main())
