@@ -4,12 +4,14 @@ from urllib.parse        import urlparse
 
 def get_gameid(data):
     if isinstance(data, dict):
-        return next(iter(data))
-    elif isinstance(data,str):
-        path = urlparse(data).path
-        return path.strip("/").split("/")[1]
-    else:
-        print(data)
+        return next(iter(data),None)
+    
+    if isinstance(data,str):
+        try:
+            path = urlparse(data).path
+            return int(path.strip("/").split("/")[1])
+        except (ValueError,IndexError):
+            return None
 
     return None
 
@@ -45,7 +47,7 @@ async def fetch(url):
     game_id = get_gameid(url)
 
     if game_id == None:
-        assert FetchingError("steam",url,"Can't find game id")
+        raise FetchingError("steam",url,"Can't find game id")
 
     api_url = f'https://store.steampowered.com/api/appdetails?appids={game_id}&cc=gb'
     result = await fetch_json(api_url)

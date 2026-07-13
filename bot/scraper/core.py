@@ -6,7 +6,6 @@ from bot.scraper       import format,fetch_playwright
 from bot.scraper.sites import steam,ebay,bandq
 
 
-
 SCRAPER_MAPPING = {
     "diy.com" : {
         "extract" : bandq.extract,
@@ -26,7 +25,19 @@ def get_functions(url):
     domain = urlparse(url).netloc
     domain = domain.replace("www.", "")
     return SCRAPER_MAPPING.get(domain)
- 
+
+
+"""
+    call scrape for it to scrape the page and return the necessary data in a readable format.
+
+    data = {
+        [Name] = name of product
+        [InitialPrice] = if product is discounted, the original price will be here
+        [FinalPrice] = the current price of the product
+        [Percentage] = if product is discounted, then the percentage of the discount will be here
+        [Available] = availability of the product - nil = unknown
+    }
+"""
 async def scrape(url):
     functions = get_functions(url)
     if not functions:

@@ -16,7 +16,7 @@ async def get_context():
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             locale="en-GB",
         )
-        BROWSER_INSTANCE.on("disconnected", lambda: print("Browser disconnected!"))
+        await BROWSER_INSTANCE.on("disconnected", lambda: print("Browser disconnected!"))
 
     return CONTEXT_INSTANCE
 

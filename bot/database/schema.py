@@ -1,19 +1,14 @@
-import sys
-import asyncio
-import aiosqlite
+from bot.database.connection import Database
+from bot.config              import DB_PATH
 
-from pathlib import Path
-sys.path.append(str(Path(__file__).parent.parent))
-
-from config import DB_PATH
-
-DB_CONNECTION = None
 
 async def init():
-    global DB_CONNECTION
-    DB_CONNECTION = await aiosqlite.connect(DB_PATH)
+    db = Database()
+    await db.connect(DB_PATH)
 
 async def create_tables():
+    DB_CONNECTION = await Database().get_connection()
+
     cursor = await DB_CONNECTION.cursor()
     await cursor.execute("""
         CREATE TABLE IF NOT EXISTS products (
@@ -33,7 +28,6 @@ async def create_tables():
             id          INTEGER PRIMARY KEY,
             product_id  INTEGER REFERENCES products(id),
             price       REAL NOT NULL,
-            currency    TEXT NOT NULL,
             captured_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """)

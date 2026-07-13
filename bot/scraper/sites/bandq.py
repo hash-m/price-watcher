@@ -1,11 +1,11 @@
 from bot.exceptions      import ExtractionError
 from bs4                 import BeautifulSoup
-from bot.scraper.browser import get_context
 from bot.scraper.fetcher import fetch_json
 
 def get_productcode(soup):
     th = soup.find("th", string="Product code")
-
+    product_code = None
+    
     if th:
         td = th.find_next_sibling("td")
         product_code = td.get_text(strip=True)

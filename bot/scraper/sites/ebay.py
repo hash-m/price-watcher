@@ -1,10 +1,15 @@
-import aiohttp
+from bot.scraper.fetcher import fetch_json
+from bot.exceptions      import ExtractionError
+from urllib.parse        import urlparse
+from bot.config          import EBAY_TOKEN
 
-from bot.exceptions import ExtractionError
-from bot.config import EBAY_TOKEN
-
-def get_itemid():
-    return None
+def get_itemid(url):
+    if isinstance(url,str):
+        try:
+            path = urlparse(url).path
+            return int(path.strip('/').split("/")[1])
+        except (ValueError,IndexError):
+            return None
 
 async def fetch(url):
     item_id = get_itemid(url)
@@ -15,16 +20,11 @@ async def fetch(url):
         "Accept-Language"          : "en-GB"
     }
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get(
-            f"https://api.ebay.com/buy/browse/v1/item/v1|{item_id}|0",
-            headers=headers
-        ) as response:
-            return await response.json()
+    return await fetch_json(f"https://api.ebay.com/buy/browse/v1/item/v1|{item_id}|0",headers)
 
 def extract(json):
     if not json or "itemId" not in json:
-        raise ExtractionError("ebay", "", "JSON not found")
+        raise ExtractionError("ebay", "JSON not found")
 
     info           = {}
     availabilities = json.get("estimatedAvailabilities", [])

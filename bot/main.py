@@ -1,12 +1,11 @@
 import discord
 import asyncio
+import bot.database.schema as schema
 
-from bot.scraper.browser import close_browser
-from bot.database import schema
 from bot.scheduler.poller import start_polling
-from config import DISCORD_TOKEN
-from discord.ext import commands
-from discord import app_commands
+from bot.config           import DISCORD_TOKEN
+from discord.ext          import commands
+from discord              import app_commands
 
 
 
@@ -57,9 +56,9 @@ async def on_ready():
     print(f'I am online as {bot.user}')
 
     try:
-        await bot.load_extension("cogs.watching")
-        await bot.load_extension("cogs.alerts")
-        await bot.load_extension("cogs.prices")
+        await bot.load_extension("bot.cogs.watching")
+        await bot.load_extension("bot.cogs.alerts")
+        await bot.load_extension("bot.cogs.prices")
     except Exception as e:
         print(f"Failed to load cog(s): {e}")
 
@@ -80,4 +79,5 @@ async def main():
         await polling_task
         await bot.close()
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

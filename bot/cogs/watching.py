@@ -3,10 +3,13 @@ import aiosqlite
 import time
 import bot.database.schema as schema
 
-from bot.scraper.core    import get_functions 
-from bot.config          import POLL_INTERVAL
-from discord.ext         import commands
-from discord             import app_commands
+from bot.scraper.core     import get_functions 
+from bot.config           import POLL_INTERVAL
+from bot.database.queries import get_products
+from discord.ext          import commands
+from discord              import app_commands
+
+
 
 async def add_product(url,channel_id,user_id,poll_interval = POLL_INTERVAL):
     db        = schema.DB_CONNECTION
@@ -29,6 +32,7 @@ async def add_product(url,channel_id,user_id,poll_interval = POLL_INTERVAL):
         await db.rollback()
         print(f"Database error: {e}\nProduct entry not added")
 
+
 async def remove_product(product_link,user_id):
     db = schema.DB_CONNECTION
 
@@ -49,24 +53,6 @@ async def remove_product(product_link,user_id):
     except aiosqlite.Error as e:
         await db.rollback()
         return (f"Database error: {e}\nProduct not removed.")
-
-async def get_products(user_id):
-    db = schema.DB_CONNECTION
-    
-    try:
-        return await db.execute_fetchall(
-            """
-            SELECT * FROM products
-            WHERE user_id = ?
-            """,
-            (user_id,)
-        )
-    except aiosqlite.OperationalError as e:
-        print(f"Failed to fetch products to poll: {e}")
-        return []
-    except aiosqlite.Error as e:
-        print(f"Database error: {e}")
-        return []
     
 
 class WatchingCog(commands.Cog):
