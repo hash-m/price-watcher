@@ -66,7 +66,7 @@ class WatchingCog(commands.Cog):
         )
         embed.set_author(
             name=interaction.user.display_name,
-            icon_url=interaction.user.display_icon
+            icon_url=interaction.user.display_avatar.url
         )
 
         if not get_functions(url):
@@ -87,7 +87,7 @@ class WatchingCog(commands.Cog):
         )
         embed.set_author(
             name=interaction.user.display_name,
-            icon_url=interaction.user.display_icon
+            icon_url=interaction.user.display_avatar.url
         )
         
         if not get_functions(url):
@@ -109,7 +109,7 @@ class WatchingCog(commands.Cog):
         )
         embed.set_author(
             name=interaction.user.display_name,
-            icon_url=interaction.user.display_icon
+            icon_url=interaction.user.display_avatar.url
         )
         products = await get_products(interaction.user.id)
         description = ""
@@ -118,7 +118,6 @@ class WatchingCog(commands.Cog):
             product_name = product[1] or "Waiting For Name.." #product name will be there right after /watch once I add something to make the polls faster
             product_link = product[2]
             description += f"[**{product_name}**]({product_link})\n"
-            print(product)
 
         embed.description = description
 
