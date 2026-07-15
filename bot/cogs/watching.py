@@ -1,18 +1,17 @@
 import discord
 import aiosqlite
 import time
-import bot.database.schema as schema
 
 from bot.scraper.core     import get_functions 
-from bot.config           import POLL_INTERVAL
 from bot.database.queries import get_products
+from bot.database.connection import Database
 from discord.ext          import commands
 from discord              import app_commands
 
 
 
-async def add_product(url,channel_id,user_id,poll_interval = POLL_INTERVAL):
-    db        = schema.DB_CONNECTION
+async def add_product(url,channel_id,user_id,poll_interval = 90):
+    db        = await Database().get_connection()
     poll_time = time.time() + poll_interval
     poll_time = time.strftime('%Y-%m-%d %H:%M:%S',time.gmtime(poll_time))
 
@@ -26,15 +25,16 @@ async def add_product(url,channel_id,user_id,poll_interval = POLL_INTERVAL):
             (url, channel_id, user_id,poll_time)
         )
         await db.commit()  
+        return "Successfully added product to the watchlist."
     except aiosqlite.IntegrityError:
-        return "You're already tracking that URL"
+        return "You're already watching that URL"
     except aiosqlite.Error as e:
         await db.rollback()
         print(f"Database error: {e}\nProduct entry not added")
 
 
 async def remove_product(product_link,user_id):
-    db = schema.DB_CONNECTION
+    db = await Database().get_connection()
 
     try:
         cursor = await db.execute(
@@ -61,25 +61,68 @@ class WatchingCog(commands.Cog):
 
     @app_commands.command(name="watch", description="Watch a product")
     async def watch(self, interaction : discord.Interaction, url : str):
+        embed = discord.Embed(
+            color=16777215
+        )
+        embed.set_author(
+            name=interaction.user.display_name,
+            icon_url=interaction.user.display_icon
+        )
+
         if not get_functions(url):
-            await interaction.response.send_message(f"Not a valid url!")
+            embed.title = "Fail"
+            embed.description = "Not a valid URL."
+            await interaction.response.send_message(embed=embed)
             return
 
-        error_msg = await add_product(url,interaction.channel_id,interaction.user.id)
-        await interaction.response.send_message(error_msg or "success")
+        embed.title = "Watching"
+        msg = await add_product(url,interaction.channel_id,interaction.user.id)
+        embed.description = msg
+        await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="unwatch", description="Remove a watcher on a product")
     async def unwatch(self, interaction : discord.Interaction, url : str):
+        embed = discord.Embed(
+            color=16777215
+        )
+        embed.set_author(
+            name=interaction.user.display_name,
+            icon_url=interaction.user.display_icon
+        )
+        
         if not get_functions(url):
-            await interaction.response.send_message(f"Not a valid url!")
+            embed.title = "Fail"
+            embed.description = "Not a valid URL."
+            await interaction.response.send_message(embed=embed)
             return
-
+        
+        embed.title = "Removed"
         msg = await remove_product(url,interaction.user.id)
-        await interaction.response.send_message(msg)
+        embed.description = msg
+        await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="list", description="List all products being watched")
     async def list_items(self, interaction : discord.Interaction):
-        await interaction.response.send_message(f"Here is the list of watches\n{str(await get_products(interaction.user.id))}")
+        embed = discord.Embed(
+            title="Watchlist 👀",
+            color=16777215,
+        )
+        embed.set_author(
+            name=interaction.user.display_name,
+            icon_url=interaction.user.display_icon
+        )
+        products = await get_products(interaction.user.id)
+        description = ""
+
+        for product in products:
+            product_name = product[1] or "Waiting For Name.." #product name will be there right after /watch once I add something to make the polls faster
+            product_link = product[2]
+            description += f"[**{product_name}**]({product_link})\n"
+            print(product)
+
+        embed.description = description
+
+        await interaction.response.send_message(embed=embed)
     
 async def setup(bot : commands.Bot):
     await bot.add_cog(WatchingCog(bot))

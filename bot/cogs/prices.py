@@ -10,16 +10,33 @@ class PricesCog(commands.Cog):
 
     @app_commands.command(name="price", description="Retrieve the current price of a product")
     async def price(self, interaction : discord.Interaction, url : str):
+        embed = discord.Embed(
+            color=16777215
+        )
+        embed.set_author(
+            name=interaction.user.display_name,
+            icon_url=interaction.user.display_icon
+        )
+
         product = await get_product(url,interaction.user.id)
 
         if not product:
-            await interaction.response.send_message(f"That product isn't being watched")
+            embed.title = "Fail"
+            embed.description = "Product isn't being watched."
+            await interaction.response.send_message(embed=embed)
             return
 
         snapshots = await get_snapshots(product[0])
         newest_snapshot = snapshots[0] if snapshots else None
 
-        await interaction.response.send_message(f"Here is the current price..\n {newest_snapshot}")
+        if newest_snapshot:
+            embed.title = "Success"
+            embed.description = f"Current Price: £{newest_snapshot[2]}"
+        else:
+            embed.title = "Fail"
+            embed.description = f"No price is available yet. Try again later."
+
+        await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="history", description="Retrieve the price history of a product")
     async def history(self, interaction : discord.Interaction, url : str):

@@ -10,7 +10,7 @@ from bot.database.queries    import get_snapshots
 from bot.config              import POLL_INTERVAL
 
 async def get_products_to_poll():
-    db = Database().get_connection()
+    db = await Database().get_connection()
     
     try:
         return await db.execute_fetchall(
@@ -28,18 +28,19 @@ async def get_products_to_poll():
         print(f"Database error: {e}")
         return []
 
-async def update_product_poll(product_tuple,poll_interval=POLL_INTERVAL):
-    db         = Database().get_connection()
+async def update_product(product_tuple,scraped_data,poll_interval=POLL_INTERVAL):
+    db         = await Database().get_connection()
     jitter     = int(poll_interval * 0.2)
     poll_time  = time.time() + poll_interval
     poll_time += random.randint(-jitter,jitter)
     poll_time  = time.strftime('%Y-%m-%d %H:%M:%S',time.gmtime(poll_time))
 
     product_id = product_tuple[0]
+    product_name = scraped_data["Name"]
 
     for attempt in range(5):
         try:
-            await db.execute("UPDATE products SET next_poll = ? WHERE id = ?", (poll_time, product_id))
+            await db.execute("UPDATE products SET next_poll = ?, NAME = ? WHERE id = ?", (poll_time, product_name, product_id))
             await db.commit()
             return
         except aiosqlite.OperationalError as e:
@@ -68,7 +69,7 @@ async def upload_price(product_id,product_data):
     if not is_different_snapshot(last_snapshot,product_data):
         return
     
-    db = Database().get_connection()
+    db = await Database().get_connection()
 
     try:
         await db.execute("INSERT INTO product_changes(product_id,price) VALUES (?,?)",
@@ -83,15 +84,14 @@ def check_for_alerts():
     return
 
 async def start_polling(stop_event):
-    db = Database().get_connection()
     while not stop_event.is_set():
         products = await get_products_to_poll()
         for product in products:
-            url = product[1]
+            url = product[2]
             try:
                 data = await scrape(url)
                 await upload_price(product[0],data)
-                await update_product_poll(product)
+                await update_product(product,data)
             except Exception as e:
                 print(e)
                 continue

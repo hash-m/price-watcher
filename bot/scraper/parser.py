@@ -21,7 +21,12 @@ def format_price(price):
     if isinstance(price, (int, float)):
         return float(price)
     
-    return round(float(str(price).strip().strip('£')), 2)
+    price = str(price).strip().strip('£')
+
+    if not price:
+        return None
+    
+    return round(float(price), 2)
 
 def format(raw_info):
     info = dict(raw_info)

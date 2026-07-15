@@ -13,6 +13,7 @@ async def create_tables():
     await cursor.execute("""
         CREATE TABLE IF NOT EXISTS products (
             id          INTEGER PRIMARY KEY,
+            name        TEXT,
             url         TEXT NOT NULL UNIQUE,
             channel_id  TEXT NOT NULL,
             user_id     TEXT NOT NULL,
