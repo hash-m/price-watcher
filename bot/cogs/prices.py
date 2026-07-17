@@ -100,10 +100,8 @@ class PricesCog(commands.Cog):
             embed.description = "Product hasn't gotten any of its scrapes stored."
             await interaction.response.send_message(embed=embed)
             return
-        
-        stats = get_stats(snapshots)
 
-        sma30d, sma90d, volatility, momentum, high, low, mean, percentage = get_stats(snapshots)
+        high, low, mean, percentage = get_stats(snapshots)
 
         def format_price(value):
             if value is None or (isinstance(value, float) and math.isnan(value)):
@@ -118,11 +116,6 @@ class PricesCog(commands.Cog):
         embed.title = "Product Stats"
         embed.url = url
 
-        embed.add_field(name="30d SMA", value=format_price(sma30d), inline=True)
-        embed.add_field(name="90d SMA", value=format_price(sma90d), inline=True)
-        embed.add_field(name="Volatility (σ)", value=format_price(volatility), inline=True)
-
-        embed.add_field(name="Momentum", value=format_signed(momentum), inline=True)
         embed.add_field(name="All-Time High", value=format_price(high), inline=True)
         embed.add_field(name="All-Time Low", value=format_price(low), inline=True)
 
