@@ -31,8 +31,11 @@ async def get_products(user_id):
     try:
         return await db.execute_fetchall(
             """
-            SELECT * FROM products
-            WHERE user_id = ?
+            SELECT products.*
+            FROM products
+            JOIN watches
+            ON products.id = watches.product_id
+            WHERE watches.user_id = ?
             """,
             (user_id,)
         )
@@ -43,15 +46,28 @@ async def get_products(user_id):
         print(f"Database error: {e}")
         return []
     
-async def get_product(url,user_id):
+async def get_product(url):
     db = await Database().get_connection()
     
     try:
-        async with db.execute("SELECT * FROM products WHERE user_id = ? AND url = ?", (user_id,url)) as cursor:
+        async with db.execute("SELECT * FROM products WHERE url = ?", (url,)) as cursor:
             return await cursor.fetchone()
     except aiosqlite.OperationalError as e:
         print(f"Failed to fetch products to poll: {e}")
-        return []
+        raise
     except aiosqlite.Error as e:
         print(f"Database error: {e}")
-        return []
+        raise
+
+async def create_user_if_dont_exist(user_id):
+    db = await Database().get_connection()
+
+    await db.execute(
+        """
+        INSERT OR IGNORE INTO users(id)
+        VALUES(?)
+        """,
+        (user_id,)
+    )
+
+    await db.commit()

@@ -31,11 +31,12 @@ def get_functions(url):
     call scrape for it to scrape the page and return the necessary data in a readable format.
 
     data = {
-        [Name] = name of product
+        [Name]         = name of product
+        [URL]          = url of product
         [InitialPrice] = if product is discounted, the original price will be here
-        [FinalPrice] = the current price of the product
-        [Percentage] = if product is discounted, then the percentage of the discount will be here
-        [Available] = availability of the product - nil = unknown
+        [FinalPrice]   = the current price of the product
+        [Percentage]   = if product is discounted, then the percentage of the discount will be here
+        [Available]    = availability of the product - nil = unknown
     }
 """
 async def scrape(url):
@@ -58,4 +59,5 @@ async def scrape(url):
         useful_data = extract(data)    
 
     useful_data = format(useful_data)
+    useful_data["URL"] = url
     return useful_data

@@ -72,7 +72,7 @@ async def main():
         await schema.init()
         await schema.create_tables()
         stop_event = asyncio.Event()
-        polling_task = asyncio.create_task(start_polling(stop_event))
+        polling_task = asyncio.create_task(start_polling(stop_event,bot))
         await bot.start(DISCORD_TOKEN)
     finally:
         stop_event.set()

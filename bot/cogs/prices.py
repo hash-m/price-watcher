@@ -22,7 +22,7 @@ class PricesCog(commands.Cog):
             icon_url=interaction.user.display_avatar.url
         )
 
-        product = await get_product(url,interaction.user.id)
+        product = await get_product(url)
 
         if not product:
             embed.title = "Fail"
@@ -52,7 +52,7 @@ class PricesCog(commands.Cog):
             icon_url=interaction.user.display_avatar.url
         )
 
-        product = await get_product(url,interaction.user.id)
+        product = await get_product(url)
 
         if not product:
             embed.title = "Fail"
@@ -85,7 +85,7 @@ class PricesCog(commands.Cog):
             icon_url=interaction.user.display_icon
         )
 
-        product = await get_product(url,interaction.user.id)
+        product = await get_product(url)
 
         if not product:
             embed.title = "Fail"

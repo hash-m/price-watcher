@@ -41,5 +41,7 @@ def format(raw_info):
         info["Percentage"] = format_percentage(info["Percentage"])
     elif "InitialPrice" in info and "FinalPrice" in info:
         info["Percentage"] = calculate_percentage(info["InitialPrice"], info["FinalPrice"])
+    else:
+        info["Percentage"] = 0
 
     return info

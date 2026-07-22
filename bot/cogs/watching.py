@@ -1,58 +1,10 @@
 import discord
-import aiosqlite
-import time
 
+from bot.logic            import watch_product,unwatch_product
 from bot.scraper.core     import get_functions 
 from bot.database.queries import get_products
-from bot.database.connection import Database
 from discord.ext          import commands
 from discord              import app_commands
-
-
-
-async def add_product(url,channel_id,user_id,poll_interval = 90):
-    db        = await Database().get_connection()
-    poll_time = time.time() + poll_interval
-    poll_time = time.strftime('%Y-%m-%d %H:%M:%S',time.gmtime(poll_time))
-
-
-    try:
-        await db.execute(
-            """
-            INSERT INTO products (url,channel_id,user_id,next_poll)
-            VALUES (?, ?, ?, ?)
-            """, 
-            (url, channel_id, user_id,poll_time)
-        )
-        await db.commit()  
-        return "Successfully added product to the watchlist."
-    except aiosqlite.IntegrityError:
-        return "You're already watching that URL"
-    except aiosqlite.Error as e:
-        await db.rollback()
-        print(f"Database error: {e}\nProduct entry not added")
-
-
-async def remove_product(product_link,user_id):
-    db = await Database().get_connection()
-
-    try:
-        cursor = await db.execute(
-            """
-            DELETE FROM products
-            WHERE url = ? AND user_id = ?
-            """, 
-            (product_link,user_id)
-        )
-        await db.commit()
-
-        if cursor.rowcount > 0:
-            return "Successfully deleted product from watchlist."
-        else:
-            return "No product found to be deleted."
-    except aiosqlite.Error as e:
-        await db.rollback()
-        return (f"Database error: {e}\nProduct not removed.")
     
 
 class WatchingCog(commands.Cog):
@@ -76,7 +28,7 @@ class WatchingCog(commands.Cog):
             return
 
         embed.title = "Watching"
-        msg = await add_product(url,interaction.channel_id,interaction.user.id)
+        msg = await watch_product(url,interaction.channel_id,interaction.user.id)
         embed.description = msg
         await interaction.response.send_message(embed=embed)
 
@@ -97,7 +49,7 @@ class WatchingCog(commands.Cog):
             return
         
         embed.title = "Removed"
-        msg = await remove_product(url,interaction.user.id)
+        msg = await unwatch_product(url,interaction.user.id)
         embed.description = msg
         await interaction.response.send_message(embed=embed)
 
