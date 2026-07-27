@@ -8,15 +8,15 @@ from discord.ext          import commands
 from discord              import app_commands
 
 
-
 intents = discord.Intents.default()
 intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 @bot.tree.command(name="load", description="Load a specific cog")
+@commands.is_owner()
 async def load_cog(interaction : discord.Interaction, extension : str):
-    try:
+    try:            
         await bot.load_extension(f"cogs.{extension}")
         await interaction.response.send_message(f"Cog '{extension}' has been loaded.")
         print(f"Cog '{extension}' has been loaded.")
@@ -31,6 +31,7 @@ async def load_cog(interaction : discord.Interaction, extension : str):
     
 
 @bot.tree.command(name="unload", description="Unload a specific cog")
+@commands.is_owner()
 async def unload_cog(interaction : discord.Interaction, extension : str):
     try:
         await bot.unload_extension(f"cogs.{extension}")
@@ -48,6 +49,8 @@ async def unload_cog(interaction : discord.Interaction, extension : str):
 async def on_app_command_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
     if isinstance(error, app_commands.CommandNotFound):
         await interaction.response.send_message("This command is no longer available.")
+    if isinstance(error, commands.NotOwner):
+        await interaction.send("You do not have permission to run this developer-only command.")
     else:
         await interaction.response.send_message(f"An error occurred: {error}")
 
