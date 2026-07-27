@@ -96,17 +96,17 @@ async def notify(bot,alert,product):
     
     await channel.send(content=f"<@{user_id}>", embed=embed)
 
-async def reset_alert(alert):
+async def set_alerts_triggered_field(alert,truefalse):
     db = await Database().get_connection()
     
     try:
         await db.execute(
             """
             UPDATE alerts
-            SET triggered = FALSE
+            SET triggered = ?
             WHERE id = ?
             """,
-            (alert[0],)
+            (truefalse,alert[0])
         )
         await db.commit()
     except aiosqlite.Error as e:
@@ -123,5 +123,6 @@ async def notify_eligible_users(bot,product,scraped_data):
         match should_notify:
             case "notify":
                 await notify(bot,alert,scraped_data)
+                await set_alerts_triggered_field(alert,True)
             case "reset":
-                await reset_alert(alert)
+                await set_alerts_triggered_field(alert,False)
