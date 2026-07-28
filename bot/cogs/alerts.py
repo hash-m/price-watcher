@@ -3,113 +3,94 @@ import discord
 from discord.ext      import commands
 from bot.logic        import add_alert,remove_alert
 from bot.scraper.core import get_functions
-from discord          import app_commands
-from discord          import Enum
+from bot.utils        import send_error_msg
+from discord          import app_commands,Enum
 
 class AlertsCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
     class AlertType(Enum):
-        Price        = "price"
         Percentage   = "percentage"
+        Price        = "price"
         Availability = "availability"
 
-    async def trigger_autocomplete(self, interaction: discord.Interaction, current: str):
-        target = interaction.namespace.target
+    class AvailabilityOptions(Enum):
+        Available   = "yes"
+        Unavailable = "no"
 
-        if target == self.AlertType.Availability.value:
-            options = ["Available", "Unavailable"]
-            return [
-                app_commands.Choice(name=opt, value=opt)
-                for opt in options
-                if current.lower() in opt.lower()
-            ]
+    alert_group = app_commands.Group(name="alert", description="Manage and create alerts")
 
-        return []
-
-    @app_commands.command(name="alert", description="Make a condition for you to be alerted")
-    @app_commands.autocomplete(trigger=trigger_autocomplete)
-    async def alert(self, interaction : discord.Interaction, url : str, target : AlertType, trigger : str):
-        embed = discord.Embed(
-            color=16777215
-        )
-        embed.set_author(
-            name=interaction.user.display_name,
-            icon_url=interaction.user.display_avatar.url
-        )
-        
-        if target == self.AlertType.Percentage:
-            try:
-                trigger = float(trigger)
-            except ValueError:
-                embed.color = discord.Colour.red()
-                embed.title = "Fail"
-                embed.description = "Looking for a number"    
-                await interaction.response.send_message(embed=embed)
-                return
-
-            if trigger < 1 or trigger > 100:
-                embed.color = discord.Colour.red()
-                embed.title = "Fail"
-                embed.description = "Percentage range must be within 1% to 100%"    
-                await interaction.response.send_message(embed=embed)
-                return
-                
-        
-        if target == self.AlertType.Price: 
-            try:
-                trigger = float(trigger)
-            except ValueError:
-                embed.color = discord.Colour.red()
-                embed.title = "Fail"
-                embed.description = "Looking for a number"    
-                await interaction.response.send_message(embed=embed)
-                return
-
-            if trigger < 0:
-                embed.color = discord.Colour.red()
-                embed.title = "Fail"
-                embed.description = "Price can't be negative."    
-                await interaction.response.send_message(embed=embed)
-                return
-            
-        if target == self.AlertType.Availability:
-            lowered = trigger.strip().lower()
-            if lowered not in ("available", "unavailable"):
-                embed.color = discord.Colour.red()
-                embed.title = "Fail"
-                embed.description = "Expected 'Available' or 'Unavailable'."
-                await interaction.response.send_message(embed=embed)
-                return
-            trigger = lowered == "available"
-
-        if not get_functions(url):
-            embed.color = discord.Colour.red()
-            embed.title = "Fail"
-            embed.description = "Not a valid URL."
-            await interaction.response.send_message(embed=embed)
+    @alert_group.command(name="price", description="Get alerted when the price of a product goes under your trigger value")
+    async def alert_price(self, interaction : discord.Interaction, url : str, price : float):
+        if price < 0:
+            await send_error_msg(interaction,"Price can't be a negative number.","Fail")
             return
 
+        if not get_functions(url):
+            await send_error_msg(interaction,"Not a valid URL.","Fail")
+            return
 
-        result_msg = await add_alert(url,interaction.user.id,target.value,trigger)
-        
-        embed.title = result_msg
+        result_msg = await add_alert(url,interaction.user.id,"price",price)
 
         if result_msg != "Error":
-            embed.description = (
-                f"Successfully added an alert which will notify you when "
-                f"{target} <= {'£' if target.value == 'price' else ''}{trigger}"
-                f"{'%' if target.value == 'percentage' else ''}"
+            embed = discord.Embed(color=discord.Colour.green())
+            embed.set_author(
+                name=interaction.user.display_name,
+                icon_url=interaction.user.display_avatar.url
             )
+            embed.description = f"Successfully added an alert which notifies you when the product is under £{price:.2f}."
+            await interaction.response.send_message(embed=embed)
         else:
-            embed.color = discord.Colour.red()
-            embed.description = "Something went wrong.\nAlert not added."
-
-        await interaction.response.send_message(embed=embed)
+            await send_error_msg(interaction,"Something has went wrong.\nAlert not setup.")
 
 
-    @app_commands.command(name="unalert", description="Remove an alert")
+    @alert_group.command(name="percentage", description="Get alerted when the percentage of a product goes over your trigger value")
+    async def alert_percentage(self, interaction : discord.Interaction, url : str, percentage : float):
+        if percentage < 1 or percentage > 100:
+            await send_error_msg(interaction,"Percentage range must be within 1% to 100%","Fail")
+            return
+
+        if not get_functions(url):
+            await send_error_msg(interaction,"Not a valid URL.","Fail")
+            return
+
+        result_msg = await add_alert(url,interaction.user.id,"percentage",percentage)
+
+        if result_msg != "Error":
+            embed = discord.Embed(color=discord.Colour.green())
+            embed.set_author(
+                name=interaction.user.display_name,
+                icon_url=interaction.user.display_avatar.url
+            )
+            embed.description = f"Successfully added an alert which notifies you when the product is reduced by at least {percentage}%."
+            await interaction.response.send_message(embed=embed)
+        else:
+            await send_error_msg(interaction,"Something has went wrong.\nAlert not setup.")
+
+
+    @alert_group.command(name="availability", description="Get alerted when a product becomes available or unavailable")
+    async def alert_availability(self, interaction : discord.Interaction, url : str, availability : AvailabilityOptions):
+        if not get_functions(url):
+            await send_error_msg(interaction,"Not a valid URL.","Fail")
+            return
+
+        truefalse = availability.value == "yes"
+        result_msg = await add_alert(url,interaction.user.id,"availability",truefalse)
+
+        if result_msg != "Error":
+            embed = discord.Embed(color=discord.Colour.green())
+            embed.set_author(
+                name=interaction.user.display_name,
+                icon_url=interaction.user.display_avatar.url
+            )
+            embed.description = f"Successfully added an alert which notifies you when the product becomes {"avaiable" if truefalse else "unavailable"}."
+            await interaction.response.send_message(embed=embed)
+        else:
+            await send_error_msg(interaction,"Something has went wrong.\nAlert not setup.")
+
+
+    @alert_group.command(name="remove", description="Remove an alert")
     async def unalert(self, interaction : discord.Interaction, url : str, target : AlertType):
         embed = discord.Embed(
             color=16777215

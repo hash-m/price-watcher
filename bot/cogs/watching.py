@@ -1,5 +1,6 @@
 import discord
 
+from bot.utils            import send_error_msg
 from bot.logic            import watch_product,unwatch_product
 from bot.scraper.core     import get_functions 
 from bot.database.queries import get_products
@@ -13,51 +14,40 @@ class WatchingCog(commands.Cog):
 
     @app_commands.command(name="watch", description="Watch a product")
     async def watch(self, interaction : discord.Interaction, url : str):
-        embed = discord.Embed(
-            color=16777215
-        )
-        embed.set_author(
-            name=interaction.user.display_name,
-            icon_url=interaction.user.display_avatar.url
-        )
 
         if not get_functions(url):
-            embed.title = "Fail"
-            embed.description = "Not a valid URL."
-            await interaction.response.send_message(embed=embed)
+            await send_error_msg(interaction,"Not a valid URL.","Fail")
             return
 
-        embed.title = "Watching"
+        embed = discord.Embed(color=discord.Colour.green())
+        embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+
+        embed.title = "Watching 👀"
         msg = await watch_product(url,interaction.channel_id,interaction.user.id)
         embed.description = msg
+
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="unwatch", description="Remove a watcher on a product")
     async def unwatch(self, interaction : discord.Interaction, url : str):
-        embed = discord.Embed(
-            color=16777215
-        )
-        embed.set_author(
-            name=interaction.user.display_name,
-            icon_url=interaction.user.display_avatar.url
-        )
-        
         if not get_functions(url):
-            embed.title = "Fail"
-            embed.description = "Not a valid URL."
-            await interaction.response.send_message(embed=embed)
+            await send_error_msg(interaction,"Not a valid URL.","Fail")
             return
-        
+
+        embed = discord.Embed(color=discord.Colour.green())
+        embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+
         embed.title = "Removed"
         msg = await unwatch_product(url,interaction.user.id)
         embed.description = msg
+
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="list", description="List all products being watched")
     async def list_items(self, interaction : discord.Interaction):
         embed = discord.Embed(
             title="Watchlist 👀",
-            color=16777215,
+            color=discord.Colour.green(),
         )
         embed.set_author(
             name=interaction.user.display_name,

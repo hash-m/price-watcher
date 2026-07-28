@@ -5,21 +5,27 @@ from bot.database.queries import get_product
 
 async def alert_exists(url,user_id,target):
     db = await Database().get_connection()
-    product = await get_product(url)
-    product_id = product[0]
+    
     try:
+        product = await get_product(url)
+        product_id = product[0]
+
         async with db.execute("SELECT * FROM alerts WHERE product_id = ? AND user_id = ? AND target = ?",(product_id,user_id,target)) as cursor:
             return await cursor.fetchone()
+    except IndexError as e:
+        print(f"[logic/alerts.py] Index Error: {e}")
+        raise
     except aiosqlite.Error as e:
-        print(f"Database error: {e}")
-        return
+        print(f"[logic/alerts.py] Database error: {e}")
+        raise
 
 async def add_alert_to_db(url,user_id,target,trigger):
     db = await Database().get_connection()
-    product = await get_product(url)
-    product_id = product[0]
 
     try:
+        product = await get_product(url)
+        product_id = product[0]
+
         await db.execute(
             """
             INSERT INTO alerts (product_id,user_id,target,trigger)
@@ -28,19 +34,24 @@ async def add_alert_to_db(url,user_id,target,trigger):
             (product_id,user_id,target,trigger)
         )
         await db.commit()  
+    except IndexError as e:
+        print(f"[logic/alerts.py] Index Error: {e}")
+        raise
     except aiosqlite.IntegrityError:
-        print("Database error: Alert already exists")
+        print("[logic/alerts.py] Database error: Alert already exists")
         raise
     except aiosqlite.Error as e:
         await db.rollback()
-        print(f"Database error: {e}\nAlert not added")
+        print(f"[logic/alerts.py] Database error: {e}")
+        raise
 
 async def update_alert_in_db(url,user_id,target,trigger):
     db = await Database().get_connection()
-    product = await get_product(url)
-    product_id = product[0]
 
     try:
+        product = await get_product(url)
+        product_id = product[0]
+
         await db.execute(
             """
             UPDATE alerts 
@@ -50,9 +61,12 @@ async def update_alert_in_db(url,user_id,target,trigger):
             (trigger,product_id,user_id,target)
         )
         await db.commit()  
+    except IndexError as e:
+        print(f"[logic/alerts.py] Index Error: {e}")
+        raise
     except aiosqlite.Error as e:
         await db.rollback()
-        print(f"Database error: {e}\nAlert not updated")
+        print(f"[logic/alerts.py] Database error: {e}\nAlert not updated")
         raise
 
 async def remove_alert_in_db(url,user_id,target):
@@ -75,10 +89,13 @@ async def remove_alert_in_db(url,user_id,target):
             return "Successfully Removed"
         else:
             return "Not Found"
+    except IndexError as e:
+        print(f"[logic/alerts.py] Index Error: {e}")
     except aiosqlite.Error as e:
         await db.rollback()
-        print(f"Database Error: {e}")
-        return ("Error")
+        print(f"[logic/alerts.py] Database Error: {e}")
+
+    return "Error"
     
 async def add_alert(url,user_id,target,trigger):
     if target not in ("price","percentage","availability"):
@@ -97,12 +114,15 @@ async def add_alert(url,user_id,target,trigger):
         else:
             await add_alert_to_db(url,user_id,target,trigger)
             return "Added Alert"
+    except IndexError:
+        print(f"[logic/alerts.py] Index Error: {e}")
     except aiosqlite.Error as e:
-        print(f"Database Error: {e}")
-        return "Error"
+        print(f"[logic/alerts.py] Database Error: {e}")
+
+    return "Error"
     
 async def remove_alert(url,user_id,target):
-    if target not in ("price","percentage"):
+    if target not in ("price","percentage","availability"):
         raise ValueError
     
     return await remove_alert_in_db(url,user_id,target)
