@@ -60,7 +60,7 @@ async def check_alert(alert,product):
             elif price > trigger and triggered:
                 return "reset"
         case "percentage":
-            if percentage <= trigger and not triggered:
+            if percentage >= trigger and not triggered:
                 return "notify"
             elif percentage > trigger and triggered:
                 return "reset"
