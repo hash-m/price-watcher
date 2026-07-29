@@ -27,8 +27,9 @@ class PricesCog(commands.Cog):
         if newest_snapshot:
             embed = discord.Embed(color=discord.Colour.green())
             embed.set_author(name=interaction.user.display_name,icon_url=interaction.user.display_avatar.url)
-            embed.title = "Success"
-            embed.description = f"Current Price: £{newest_snapshot[2]}"
+            embed.title = f"{product[1] if product[1] else "Price"}"
+            embed.url   = product[2]
+            embed.description = f"Current Price: £{newest_snapshot[2]:.2f}"
 
             await interaction.response.send_message(embed=embed)
         else:
