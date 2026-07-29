@@ -1,7 +1,8 @@
-from bot.scraper.fetcher import fetch_json
-from bot.exceptions      import ExtractionError
-from urllib.parse        import urlparse
-from bot.config          import EBAY_TOKEN
+from bot.scraper.fetcher  import fetch_json
+from bot.exceptions       import ExtractionError
+from bot.database.queries import get_init_price
+from urllib.parse         import urlparse
+from bot.config           import EBAY_TOKEN
 
 def get_itemid(url):
     if isinstance(url,str):
@@ -22,8 +23,9 @@ async def fetch(url):
 
     return await fetch_json(f"https://api.ebay.com/buy/browse/v1/item/v1|{item_id}|0",headers)
 
-def extract(json):
+async def extract(json):
     if not json or "itemId" not in json:
+        print(json)
         raise ExtractionError("ebay", "JSON not found")
 
     info           = {}
@@ -32,8 +34,9 @@ def extract(json):
     price          = json.get("price")
 
 
-    info["Name"]       = json.get("title")
-    info["FinalPrice"] = float(price.get("value", 0))
-    info["Available"]  = availability.get("estimatedAvailabilityStatus") == "IN_STOCK"
+    info["Name"]         = json.get("title")
+    info["InitialPrice"] = None
+    info["FinalPrice"]   = float(price.get("value", 0))
+    info["Available"]    = availability.get("estimatedAvailabilityStatus") == "IN_STOCK"
 
     return info

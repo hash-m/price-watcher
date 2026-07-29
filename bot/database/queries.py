@@ -71,3 +71,13 @@ async def create_user_if_dont_exist(user_id):
     )
 
     await db.commit()
+
+async def get_init_price(product_id):
+    db = await Database().get_connection()
+
+    try:
+        async with db.execute("SELECT init_price FROM products WHERE id = ?",(product_id,)) as cursor:
+            return await cursor.fetchone()
+    except aiosqlite.Error as e:
+        print(f"[scheduler/update_db.py/does_init_price-exist()] Database Error: {e}")
+        return None

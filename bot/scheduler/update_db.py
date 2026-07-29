@@ -4,7 +4,7 @@ import aiosqlite
 import time
 
 from bot.database.connection import Database
-from bot.database.queries    import get_snapshots
+from bot.database.queries    import get_snapshots,get_init_price
 from bot.config              import POLL_INTERVAL
 
 async def update_product(product_tuple,scraped_data,poll_interval=POLL_INTERVAL):
@@ -13,10 +13,17 @@ async def update_product(product_tuple,scraped_data,poll_interval=POLL_INTERVAL)
     poll_time  = time.time() + poll_interval
     poll_time += random.randint(-jitter,jitter)
     poll_time  = time.strftime('%Y-%m-%d %H:%M:%S',time.gmtime(poll_time))
-
     product_id = product_tuple[0]
+
+    result = await get_init_price(product_id)
+    init_price = result[0] if result else None
+
+    #some websites (eg. ebay) don't have an initial price so we will use final price for the first time. 
+    #not ideal due to certain scenarios.
+    if init_price is None:
+        init_price = scraped_data["InitialPrice"] or scraped_data["FinalPrice"]
+
     product_name = scraped_data["Name"]
-    init_price   = scraped_data["InitialPrice"]
     available    = scraped_data["Available"]
 
     for attempt in range(5):

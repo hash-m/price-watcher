@@ -1,7 +1,7 @@
 import inspect
 
 from urllib.parse      import urlparse
-from bot.exceptions    import FetchingError,ExtractionError
+from bot.exceptions    import FetchingError,ExtractionError,ScrapeError
 from bot.scraper       import format,fetch_playwright
 from bot.scraper.sites import steam,ebay,bandq
 
@@ -42,14 +42,13 @@ def get_functions(url):
 async def scrape(url):
     functions = get_functions(url)
     if not functions:
-        raise ValueError(f"Unsupported website: {url}")
+        raise ValueError(f"[scraper/core.py] Unsupported website: {url}")
     
-    try:
-        fetch = functions.get("fetch")
-        extract = functions.get("extract")
-    except (FetchingError, ExtractionError):
-        print("raise a scrape fail error for bot to catch and send a message to the user")
-        return
+    fetch = functions.get("fetch")
+    extract = functions.get("extract")
+
+    if fetch is None or extract is None:
+        raise ScrapeError(url,f"Can't find {"fetch" if fetch is None else "extract"}{" and extract" if fetch is None and extract is None else ""}.")
  
     data = await fetch(url)
     
@@ -57,7 +56,8 @@ async def scrape(url):
         useful_data = await extract(data)
     else:
         useful_data = extract(data)    
-
-    useful_data = format(useful_data)
+    
     useful_data["URL"] = url
+    useful_data = await format(useful_data)
+
     return useful_data

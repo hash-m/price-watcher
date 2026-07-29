@@ -19,10 +19,10 @@ async def get_products_to_poll():
             """
         )
     except aiosqlite.OperationalError as e:
-        print(f"Failed to fetch products to poll: {e}")
+        print(f"[scheduler/poller/get_products_to_poll()] Failed to fetch products to poll: {e}")
         return []
     except aiosqlite.Error as e:
-        print(f"Database error: {e}")
+        print(f"[scheduler/poller/get_products_to_poll()] Database error: {e}")
         return []
 
 
@@ -37,6 +37,6 @@ async def start_polling(stop_event,bot):
                 await update_product(product,data)
                 await notify_eligible_users(bot,product,data)
             except Exception as e:
-                print(e)
+                print(f"[scheduler/poller/start_polling()] {e}")
                 continue
         await asyncio.sleep(3)
