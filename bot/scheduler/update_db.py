@@ -17,11 +17,13 @@ async def update_product(product_tuple,scraped_data,poll_interval=POLL_INTERVAL)
 
     result = await get_init_price(product_id)
     init_price = result[0] if result else None
-
+    
     #some websites (eg. ebay) don't have an initial price so we will use final price for the first time. 
     #not ideal due to certain scenarios.
-    if init_price is None:
-        init_price = scraped_data["InitialPrice"] or scraped_data["FinalPrice"]
+    new_init_price = scraped_data["InitialPrice"] or scraped_data["FinalPrice"]
+
+    if init_price is None or init_price < new_init_price:
+        init_price = new_init_price
 
     product_name = scraped_data["Name"]
     available    = scraped_data["Available"]

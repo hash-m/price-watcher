@@ -23,16 +23,20 @@ def calculate_percentage(initial,final):
     if initial is None or final is None or initial == 0:
         return 0
     
-    return 100 * (1- (final/initial))
-    
+    return round(100 * (1- (final/initial)),2)
+
+#may need to change the return value of 0 to something else but it works fine for what we need it for (notifying users on changes)
 def format_percentage(percentage):
     if percentage is None:
-        return 0.0
+        return 0
     
     if isinstance(percentage, (int, float)):
-        return float(percentage)
+        return round(float(percentage),2)
     
-    return float(str(percentage).strip().strip('%'))
+    try:
+        return round(float(str(percentage).strip().strip('%').replace(",","")),2)
+    except ValueError:
+        return 0
 
 def format_price(price):
     if price is None:
@@ -41,7 +45,7 @@ def format_price(price):
     if isinstance(price, (int, float)):
         return float(price)
     
-    price = str(price).strip().strip('£')
+    price = str(price).strip().strip('£').strip('$').strip().replace(",","")
 
     if not price:
         return None

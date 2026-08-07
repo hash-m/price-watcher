@@ -22,8 +22,10 @@ SCRAPER_MAPPING = {
 }
  
 def get_functions(url):
-    domain = urlparse(url).netloc
-    domain = domain.replace("www.", "")
+    url = url.strip()
+    if "//" not in url:
+        url = "//" + url 
+    domain = urlparse(url).netloc.lower().removeprefix("www.")
     return SCRAPER_MAPPING.get(domain)
 
 

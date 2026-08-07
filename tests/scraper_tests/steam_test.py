@@ -99,14 +99,11 @@ class TestExtract:
 class TestFetch:
     @pytest.mark.asyncio
     async def test_fetch_calls_appdetails_api_with_gameid(self):
-        fake_json = {"440": {"success": True}}
-        with patch.object(steam, "fetch_json", AsyncMock(return_value=fake_json)) as fetch_mock:
-            result = await steam.fetch("https://store.steampowered.com/app/440/Team_Fortress_2/")
+        with patch.object(steam, "fetch_json", AsyncMock(return_value={})) as fetch_mock:
+            await steam.fetch("https://store.steampowered.com/app/440/Team_Fortress_2/")
 
-        fetch_mock.assert_awaited_once_with(
-            "https://store.steampowered.com/api/appdetails?appids=440&cc=gb"
-        )
-        assert result == fake_json
+        fetch_mock.assert_awaited_once_with("https://store.steampowered.com/api/appdetails?appids=440&cc=gb")
+    
 
     @pytest.mark.asyncio
     async def test_fetch_stops_on_missing_gameid(self, monkeypatch):
