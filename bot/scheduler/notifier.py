@@ -53,7 +53,7 @@ async def get_alerts(product_id):
             product = the data obtained from the scraping the data from the product's website
 
         desc:
-            this function check's the alert and its status, sending a reset flag if the new data falls behind the trigger or 
+            this function checks the alert and its status, sending a reset flag if the new data falls behind the trigger or 
             sending a notify flag if the new data is reaches or exceeds the trigger and if the alert hasn't been triggered yet.
 """
 async def check_alert(alert,product):
@@ -67,12 +67,16 @@ async def check_alert(alert,product):
 
     match target:
         case "price":
-            if price <= trigger and not triggered:
+            if price is None:
+                return "dont"
+            elif price <= trigger and not triggered:
                 return "notify"
             elif price > trigger and triggered:
                 return "reset"
         case "percentage":
-            if percentage >= trigger and not triggered:
+            if percentage is None:
+                return "dont"
+            elif percentage >= trigger and not triggered:
                 return "notify"
             elif percentage < trigger and triggered:
                 return "reset"
@@ -136,7 +140,10 @@ async def notify_eligible_users(bot,product,scraped_data):
 
         match should_notify:
             case "notify":
-                await notify(bot,alert,scraped_data)
-                await set_alerts_triggered_field(alert,True)
+                try:
+                    await notify(bot,alert,scraped_data)
+                    await set_alerts_triggered_field(alert,True)
+                except discord.DiscordException as e:
+                    print(f"[bot/scheduler/notifier.py/notify_eligible_users()] Failed to notify for alert {alert[0]}: {e}")
             case "reset":
                 await set_alerts_triggered_field(alert,False)
