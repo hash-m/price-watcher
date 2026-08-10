@@ -76,7 +76,7 @@ class PricesCog(commands.Cog):
         await interaction.response.send_message(embed=embed)
 
 """
-    !!! Don't think there is enough value with this feature and also the implementation isn't the best. Will revisit this later. !!!    
+    READ!!! -> Don't think there is enough value with this feature and also the implementation isn't the best. Will revisit this later. !!!    
 
     @app_commands.command(name="history", description="Retrieve the price history of a product")
     async def history(self, interaction : discord.Interaction, url : str):
