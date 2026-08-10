@@ -99,13 +99,16 @@ async def remove_alert_in_db(url,user_id,target):
     
 async def add_alert(url,user_id,target,trigger):
     if target not in ("price","percentage","availability"):
-        raise ValueError
+        raise ValueError(f"Invalid trigger ({target})")
     
     if target == "price" and trigger < 0:
-        raise ValueError
+        raise ValueError("Trigger must be >= 0")
     
     if target == "percentage" and (trigger < 1 or trigger > 100):
-        raise ValueError
+        raise ValueError("Trigger must be within 1-100")
+
+    if target == "availability" and not isinstance(trigger,bool):
+        raise ValueError("Trigger must be a bool")
 
     try:
         if await alert_exists(url,user_id,target):
@@ -114,7 +117,7 @@ async def add_alert(url,user_id,target,trigger):
         else:
             await add_alert_to_db(url,user_id,target,trigger)
             return "Added Alert"
-    except IndexError:
+    except IndexError as e:
         print(f"[logic/alerts.py] Index Error: {e}")
     except aiosqlite.Error as e:
         print(f"[logic/alerts.py] Database Error: {e}")

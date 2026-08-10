@@ -125,11 +125,11 @@ async def watch_product(url,channel_id,user_id):
 
     try:
         product = await get_product(url)
-        product_id = None
-        if not product:
-            product_id = await create_product(url)
-        else:
+        
+        if product:
             product_id = product[0]
+        else:
+            product_id = await create_product(url)
         
         await create_user_if_dont_exist(user_id)    
         await create_watch(user_id,product_id,channel_id)
@@ -166,7 +166,7 @@ async def unwatch_product(url,user_id):
         
         return result
     except IndexError as e:
-        print(f"[logic/watching.py] Index Error")
+        print(f"[logic/watching.py] Index Error: {e}")
         return "Error" 
     except aiosqlite.Error as e:
         print(f"[logic/watching.py] Database Error: {e}")
