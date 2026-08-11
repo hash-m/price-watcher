@@ -3,7 +3,7 @@ import discord
 from discord.ext      import commands
 from bot.logic        import add_alert,remove_alert
 from bot.scraper.core import get_functions
-from bot.utils        import send_error_msg
+from bot.utils.helper_functions        import send_error_msg
 from discord          import app_commands,Enum
 
 class AlertsCog(commands.Cog):

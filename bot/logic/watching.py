@@ -1,3 +1,4 @@
+import logging
 import aiosqlite
 import time
 
@@ -22,11 +23,11 @@ async def create_product(url):
 
         return cursor.lastrowid
     except aiosqlite.IntegrityError:
-        print("[logic/watching.py] Already tracking this URL")
+        logging.exception("Already tracking this URL")
         raise
     except aiosqlite.Error as e:
         await db.rollback()
-        print(f"[logic/watching.py] Database error: {e}\nProduct entry not added")
+        logging.exception(f"Database error: {e}\nProduct entry not added")
         raise
 
 async def create_watch(user_id,product_id,channel_id):
@@ -42,11 +43,11 @@ async def create_watch(user_id,product_id,channel_id):
         )
         await db.commit()
     except aiosqlite.IntegrityError:
-        print("[logic/watching.py] Already tracking this URL")
+        logging.exception("Already tracking this URL")
         raise
     except aiosqlite.Error as e:
         await db.rollback()
-        print(f"[logic/watching.py] Database error: {e}\nWatch not added")
+        logging.exception(f"Database error: {e}\nWatch not added")
         raise
 
 async def delete_watch(user_id,product_id):
@@ -68,6 +69,7 @@ async def delete_watch(user_id,product_id):
             return "No product found to be deleted."
     except aiosqlite.Error as e:
         await db.rollback()
+        logging.exception(f"Database error: {e}")
         raise
 
 async def get_product_watches(product_id):
@@ -84,7 +86,7 @@ async def get_product_watches(product_id):
         )
     except aiosqlite.Error as e:
         await db.rollback()
-        print(f"[logic/watching.py] Database Error: {e}")
+        logging.exception(f"Database Error: {e}")
         raise
 
 async def delete_product(url):
@@ -101,7 +103,7 @@ async def delete_product(url):
         await db.commit()
     except aiosqlite.Error as e:
         await db.rollback()
-        print(f"[logic/watching.py] Database Error: {e}")
+        logging.exception(f"Database Error: {e}")
         raise
 
 async def delete_user(user_id):
@@ -118,7 +120,7 @@ async def delete_user(user_id):
         await db.commit()
     except aiosqlite.Error as e:
         await db.rollback()
-        print(f"[logic/watching.py] Database Error: {e}")
+        logging.exception(f"Database Error: {e}")
         raise
 
 async def watch_product(url,channel_id,user_id):
@@ -136,8 +138,7 @@ async def watch_product(url,channel_id,user_id):
         return "Success"
     except aiosqlite.IntegrityError:
         return "Already Watching"
-    except aiosqlite.Error as e:
-        print(f"[logic/watching.py] Database Error: {e}")
+    except aiosqlite.Error:
         return "Error"
 
 
@@ -147,7 +148,6 @@ async def unwatch_product(url,user_id):
         product = await get_product(url)
 
         if not product:
-            print("Product not found")
             return "Error"
 
         product_id = product[0]
@@ -165,9 +165,5 @@ async def unwatch_product(url,user_id):
             await delete_user(user_id)
         
         return result
-    except IndexError as e:
-        print(f"[logic/watching.py] Index Error: {e}")
+    except (IndexError,aiosqlite.Error):
         return "Error" 
-    except aiosqlite.Error as e:
-        print(f"[logic/watching.py] Database Error: {e}")
-        return "Error"

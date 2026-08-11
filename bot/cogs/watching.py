@@ -1,6 +1,6 @@
 import discord
 
-from bot.utils            import send_error_msg
+from bot.utils.helper_functions            import send_error_msg
 from bot.logic            import watch_product,unwatch_product
 from bot.scraper.core     import get_functions 
 from bot.database.queries import get_products

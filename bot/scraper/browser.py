@@ -1,4 +1,4 @@
-# browser.py
+import logging
 from playwright.async_api import async_playwright
 
 
@@ -16,7 +16,7 @@ async def get_context():
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             locale="en-GB",
         )
-        BROWSER_INSTANCE.on("disconnected", lambda: print("Browser disconnected!"))
+        BROWSER_INSTANCE.on("disconnected", lambda: logging.info("Browser disconnected!"))
 
     return CONTEXT_INSTANCE
 
@@ -29,17 +29,17 @@ async def new_page():
 async def close_browser():
     global PLAYWRIGHT_INSTANCE, BROWSER_INSTANCE, CONTEXT_INSTANCE
 
-    print("Context:", CONTEXT_INSTANCE)
-    print("Browser:", BROWSER_INSTANCE)
+    logging.info("Context:", CONTEXT_INSTANCE)
+    logging.info("Browser:", BROWSER_INSTANCE)
 
     if CONTEXT_INSTANCE:
-        print("Closing context...")
+        logging.info("Closing context...")
         await CONTEXT_INSTANCE.close()
 
     if BROWSER_INSTANCE:
-        print("Closing browser...")
+        logging.info("Closing browser...")
         await BROWSER_INSTANCE.close()
 
     if PLAYWRIGHT_INSTANCE:
-        print("Stopping playwright...")
+        logging.info("Stopping playwright...")
         await PLAYWRIGHT_INSTANCE.stop()

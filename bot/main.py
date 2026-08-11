@@ -1,6 +1,8 @@
 import discord
 import asyncio
 import bot.database.schema as schema
+import logging
+import bot.utils.logger
 
 from bot.scheduler.poller import start_polling
 from bot.config           import DISCORD_TOKEN
@@ -12,6 +14,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
+logger = logging.getLogger(__name__)
 
 @bot.tree.command(name="load", description="Load a specific cog")
 @commands.is_owner()
@@ -19,7 +22,7 @@ async def load_cog(interaction : discord.Interaction, extension : str):
     try:            
         await bot.load_extension(f"cogs.{extension}")
         await interaction.response.send_message(f"Cog '{extension}' has been loaded.")
-        print(f"Cog '{extension}' has been loaded.")
+        logger.info(f"Cog '{extension}' has been loaded.")
     except commands.ExtensionAlreadyLoaded:
         await interaction.response.send_message(f"Cog '{extension}' has already been loaded.")
     except commands.ExtensionNotFound:
@@ -36,7 +39,7 @@ async def unload_cog(interaction : discord.Interaction, extension : str):
     try:
         await bot.unload_extension(f"cogs.{extension}")
         await interaction.response.send_message(f"Cog '{extension}' has been unloaded.")
-        print(f"Cog '{extension}' has been unloaded.")
+        logger.info(f"Cog '{extension}' has been unloaded.")
     except commands.ExtensionNotLoaded:
         await interaction.response.send_message(f"Cog '{extension}' is not loaded.")
     except commands.ExtensionNotFound:
@@ -52,21 +55,22 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
     if isinstance(error, commands.NotOwner):
         await interaction.send("You do not have permission to run this developer-only command.")
     else:
+        logger.error(f"An error occurred: {error}",exc_info=True)
         await interaction.response.send_message(f"An error occurred: {error}")
 
 @bot.event
 async def on_ready():
-    print(f'I am online as {bot.user}')
+    logger.info(f'I am online as {bot.user}')
 
     try:
         await bot.load_extension("bot.cogs.watching")
         await bot.load_extension("bot.cogs.alerts")
         await bot.load_extension("bot.cogs.prices")
     except Exception as e:
-        print(f"Failed to load cog(s): {e}")
+        logger.exception(f"Failed to load cog(s): {e}")
 
     synced = await bot.tree.sync()
-    print(f"Synced {len(synced)} commands: {[s.name for s in synced]}")
+    logger.info(f"Synced {len(synced)} commands: {[s.name for s in synced]}")
 
 
 

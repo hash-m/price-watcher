@@ -1,5 +1,6 @@
 import aiosqlite
 import discord
+import logging
 
 from bot.database.connection import Database
 
@@ -19,10 +20,10 @@ async def get_watch_from_alert(alert):
         )
         return await cursor.fetchone()
     except aiosqlite.OperationalError as e:
-        print(f"Failed to fetch products to poll: {e}")
+        logging.exception(f"Failed to fetch products to poll: {e}")
         return []
     except aiosqlite.Error as e:
-        print(f"Database error: {e}")
+        logging.exception(f"Database error: {e}")
         return []
 
 
@@ -39,10 +40,10 @@ async def get_alerts(product_id):
             (product_id,)
         )
     except aiosqlite.OperationalError as e:
-        print(f"Failed to fetch products to poll: {e}")
+        logging.exception(f"Failed to fetch products to poll: {e}")
         return []
     except aiosqlite.Error as e:
-        print(f"Database error: {e}")
+        logging.exception(f"Database error: {e}")
         return []
 
 
@@ -129,7 +130,7 @@ async def set_alerts_triggered_field(alert,truefalse):
         await db.commit()
     except aiosqlite.Error as e:
         await db.rollback()
-        print(f"Database error: {e}")
+        logging.exception(f"Database error: {e}")
     
 
 async def notify_eligible_users(bot,product,scraped_data):
@@ -144,6 +145,6 @@ async def notify_eligible_users(bot,product,scraped_data):
                     await notify(bot,alert,scraped_data)
                     await set_alerts_triggered_field(alert,True)
                 except discord.DiscordException as e:
-                    print(f"[bot/scheduler/notifier.py/notify_eligible_users()] Failed to notify for alert {alert[0]}: {e}")
+                    logging.exception(f"Failed to notify for alert {alert[0]}: {e}")
             case "reset":
                 await set_alerts_triggered_field(alert,False)

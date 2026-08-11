@@ -3,7 +3,7 @@
    FOR FUNCTIONS WITH JUST PURE REUSABLE SQL QUERIES
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 """
-
+import logging
 import aiosqlite
 
 from bot.database.connection import Database
@@ -18,10 +18,10 @@ async def get_snapshots(product_id):
             (product_id,)
         )
     except aiosqlite.OperationalError as e:
-        print(f"Failed to fetch products to poll: {e}")
+        logging.exception(f"Failed to fetch products to poll: {e}")
         return []
     except aiosqlite.Error as e:
-        print(f"Database error: {e}")
+        logging.exception(f"Database error: {e}")
         return []
     
 
@@ -40,10 +40,10 @@ async def get_products(user_id):
             (user_id,)
         )
     except aiosqlite.OperationalError as e:
-        print(f"Failed to fetch products to poll: {e}")
+        logging.exception(f"Failed to fetch products to poll: {e}")
         return []
     except aiosqlite.Error as e:
-        print(f"Database error: {e}")
+        logging.exception(f"Database error: {e}")
         return []
     
 async def get_product(url):
@@ -53,10 +53,10 @@ async def get_product(url):
         async with db.execute("SELECT * FROM products WHERE url = ?", (url,)) as cursor:
             return await cursor.fetchone()
     except aiosqlite.OperationalError as e:
-        print(f"Failed to fetch products to poll: {e}")
+        logging.exception(f"Failed to fetch products to poll: {e}")
         raise
     except aiosqlite.Error as e:
-        print(f"Database error: {e}")
+        logging.exception(f"Database error: {e}")
         raise
 
 async def create_user_if_dont_exist(user_id):
@@ -79,5 +79,5 @@ async def get_init_price(product_id):
         async with db.execute("SELECT init_price FROM products WHERE id = ?",(product_id,)) as cursor:
             return await cursor.fetchone()
     except aiosqlite.Error as e:
-        print(f"[scheduler/update_db.py/does_init_price-exist()] Database Error: {e}")
+        logging.exception(f"Database Error: {e}")
         return None

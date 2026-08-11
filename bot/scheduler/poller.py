@@ -1,5 +1,6 @@
 import asyncio
 import aiosqlite
+import logging
 
 from bot.scraper             import scrape
 from bot.database.connection import Database
@@ -19,10 +20,10 @@ async def get_products_to_poll():
             """
         )
     except aiosqlite.OperationalError as e:
-        print(f"[scheduler/poller/get_products_to_poll()] Failed to fetch products to poll: {e}")
+        logging.exception(f"Failed to fetch products to poll: {e}")
         return []
     except aiosqlite.Error as e:
-        print(f"[scheduler/poller/get_products_to_poll()] Database error: {e}")
+        logging.exception(f"Database error: {e}")
         return []
 
 
@@ -37,6 +38,6 @@ async def start_polling(stop_event,bot):
                 await update_product(product,data)
                 await notify_eligible_users(bot,product,data)
             except Exception as e:
-                print(f"[scheduler/poller/start_polling()] {e}")
+                logging.exception(e)
                 continue
         await asyncio.sleep(3)

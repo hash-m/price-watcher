@@ -1,4 +1,5 @@
 import random
+import logging
 import asyncio
 import aiosqlite
 import time
@@ -39,7 +40,7 @@ async def update_product(product_tuple,scraped_data,poll_interval=POLL_INTERVAL)
                 continue
             raise 
         except aiosqlite.Error as e:
-            print(f"Database error in update_product: {e}")
+            logging.execption(f"Database error: {e}")
             raise
 
 
@@ -67,4 +68,4 @@ async def upload_price(product_id,product_data):
         await db.commit()
     except aiosqlite.Error as e:
         await db.rollback()
-        print(f"Database error: {e}\n new snapshot not added")
+        logging.exception(f"Database error: {e}\n new snapshot not added")

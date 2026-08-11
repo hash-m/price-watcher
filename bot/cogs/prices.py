@@ -2,7 +2,7 @@ import discord
 import math
 import asyncio
 
-from bot.utils            import send_error_msg
+from bot.utils.helper_functions            import send_error_msg
 from bot.analytics.charts import convert_chart_to_png,create_history_chart
 from bot.analytics.stats  import get_stats
 from bot.database.queries import get_snapshots,get_product
