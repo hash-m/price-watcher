@@ -8,12 +8,9 @@ from bot.scheduler.poller import start_polling
 from bot.config           import DISCORD_TOKEN
 from discord.ext          import commands
 from discord              import app_commands
+from bot.instance         import bot
 
 
-intents = discord.Intents.default()
-intents.message_content = True
-
-bot = commands.Bot(command_prefix='!', intents=intents)
 logger = logging.getLogger(__name__)
 
 @bot.tree.command(name="load", description="Load a specific cog")
@@ -79,7 +76,7 @@ async def main():
         await schema.init()
         await schema.create_tables()
         stop_event = asyncio.Event()
-        polling_task = asyncio.create_task(start_polling(stop_event,bot))
+        polling_task = asyncio.create_task(start_polling(stop_event))
         await bot.start(DISCORD_TOKEN)
     finally:
         stop_event.set()

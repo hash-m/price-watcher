@@ -5,7 +5,9 @@ import logging
 from bot.scraper             import scrape
 from bot.database.connection import Database
 from .update_db              import update_product,upload_price
-from .notifier               import notify_eligible_users
+from .alerts_evaluator       import notify_eligible_users
+
+logger = logging.getLogger(__name__)
 
 async def get_products_to_poll():
     db = await Database().get_connection()
@@ -20,14 +22,14 @@ async def get_products_to_poll():
             """
         )
     except aiosqlite.OperationalError as e:
-        logging.exception(f"Failed to fetch products to poll: {e}")
+        logger.exception(f"Failed to fetch products to poll: {e}")
         return []
     except aiosqlite.Error as e:
-        logging.exception(f"Database error: {e}")
+        logger.exception(f"Database error: {e}")
         return []
 
 
-async def start_polling(stop_event,bot):
+async def start_polling(stop_event):
     while not stop_event.is_set():
         products = await get_products_to_poll()
         for product in products:
@@ -36,8 +38,8 @@ async def start_polling(stop_event,bot):
                 data = await scrape(url)
                 await upload_price(product[0],data)
                 await update_product(product,data)
-                await notify_eligible_users(bot,product,data)
+                await notify_eligible_users(product,data)
             except Exception as e:
-                logging.exception(e)
+                logger.exception(e)
                 continue
         await asyncio.sleep(3)

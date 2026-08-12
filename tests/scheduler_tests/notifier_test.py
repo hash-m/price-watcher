@@ -1,5 +1,5 @@
 import pytest
-from bot.scheduler.notifier import check_alert
+from bot.scheduler.alerts_evaluator import check_alert
 
 
 """

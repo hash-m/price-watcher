@@ -5,6 +5,8 @@ import time
 from bot.database.queries    import get_product,create_user_if_dont_exist, get_products
 from bot.database.connection import Database
 
+logger = logging.getLogger(__name__)
+
 async def create_product(url):
     db        = await Database().get_connection()
     poll_time = time.time() + 90
@@ -23,11 +25,11 @@ async def create_product(url):
 
         return cursor.lastrowid
     except aiosqlite.IntegrityError:
-        logging.exception("Already tracking this URL")
+        logger.exception("Already tracking this URL")
         raise
     except aiosqlite.Error as e:
         await db.rollback()
-        logging.exception(f"Database error: {e}\nProduct entry not added")
+        logger.exception(f"Database error: {e}\nProduct entry not added")
         raise
 
 async def create_watch(user_id,product_id,channel_id):
@@ -43,11 +45,10 @@ async def create_watch(user_id,product_id,channel_id):
         )
         await db.commit()
     except aiosqlite.IntegrityError:
-        logging.exception("Already tracking this URL")
         raise
     except aiosqlite.Error as e:
         await db.rollback()
-        logging.exception(f"Database error: {e}\nWatch not added")
+        logger.exception(f"Database error: {e}\nWatch not added")
         raise
 
 async def delete_watch(user_id,product_id):
@@ -69,7 +70,7 @@ async def delete_watch(user_id,product_id):
             return "No product found to be deleted."
     except aiosqlite.Error as e:
         await db.rollback()
-        logging.exception(f"Database error: {e}")
+        logger.exception(f"Database error: {e}")
         raise
 
 async def get_product_watches(product_id):
@@ -86,7 +87,7 @@ async def get_product_watches(product_id):
         )
     except aiosqlite.Error as e:
         await db.rollback()
-        logging.exception(f"Database Error: {e}")
+        logger.exception(f"Database Error: {e}")
         raise
 
 async def delete_product(url):
@@ -103,7 +104,7 @@ async def delete_product(url):
         await db.commit()
     except aiosqlite.Error as e:
         await db.rollback()
-        logging.exception(f"Database Error: {e}")
+        logger.exception(f"Database Error: {e}")
         raise
 
 async def delete_user(user_id):
@@ -120,7 +121,7 @@ async def delete_user(user_id):
         await db.commit()
     except aiosqlite.Error as e:
         await db.rollback()
-        logging.exception(f"Database Error: {e}")
+        logger.exception(f"Database Error: {e}")
         raise
 
 async def watch_product(url,channel_id,user_id):

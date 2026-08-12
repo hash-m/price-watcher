@@ -6,6 +6,8 @@ PLAYWRIGHT_INSTANCE = None
 BROWSER_INSTANCE    = None
 CONTEXT_INSTANCE    = None
 
+logger = logging.getLogger(__name__)
+
 async def get_context():
     global PLAYWRIGHT_INSTANCE, BROWSER_INSTANCE, CONTEXT_INSTANCE
 
@@ -16,7 +18,7 @@ async def get_context():
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             locale="en-GB",
         )
-        BROWSER_INSTANCE.on("disconnected", lambda: logging.info("Browser disconnected!"))
+        BROWSER_INSTANCE.on("disconnected", lambda: logger.info("Browser disconnected!"))
 
     return CONTEXT_INSTANCE
 
@@ -29,17 +31,17 @@ async def new_page():
 async def close_browser():
     global PLAYWRIGHT_INSTANCE, BROWSER_INSTANCE, CONTEXT_INSTANCE
 
-    logging.info("Context:", CONTEXT_INSTANCE)
-    logging.info("Browser:", BROWSER_INSTANCE)
+    logger.info("Context:", CONTEXT_INSTANCE)
+    logger.info("Browser:", BROWSER_INSTANCE)
 
     if CONTEXT_INSTANCE:
-        logging.info("Closing context...")
+        logger.info("Closing context...")
         await CONTEXT_INSTANCE.close()
 
     if BROWSER_INSTANCE:
-        logging.info("Closing browser...")
+        logger.info("Closing browser...")
         await BROWSER_INSTANCE.close()
 
     if PLAYWRIGHT_INSTANCE:
-        logging.info("Stopping playwright...")
+        logger.info("Stopping playwright...")
         await PLAYWRIGHT_INSTANCE.stop()

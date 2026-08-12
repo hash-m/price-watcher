@@ -8,6 +8,8 @@ from bot.database.connection import Database
 from bot.database.queries    import get_snapshots,get_init_price
 from bot.config              import POLL_INTERVAL
 
+logger = logging.getLogger(__name__)
+
 async def update_product(product_tuple,scraped_data,poll_interval=POLL_INTERVAL):
     db         = await Database().get_connection()
     jitter     = int(poll_interval * 0.2)
@@ -40,7 +42,7 @@ async def update_product(product_tuple,scraped_data,poll_interval=POLL_INTERVAL)
                 continue
             raise 
         except aiosqlite.Error as e:
-            logging.execption(f"Database error: {e}")
+            logger.execption(f"Database error: {e}")
             raise
 
 
@@ -68,4 +70,4 @@ async def upload_price(product_id,product_data):
         await db.commit()
     except aiosqlite.Error as e:
         await db.rollback()
-        logging.exception(f"Database error: {e}\n new snapshot not added")
+        logger.exception(f"Database error: {e}\n new snapshot not added")

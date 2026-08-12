@@ -2,7 +2,10 @@ import aiosqlite
 import discord
 import logging
 
+from bot.broadcasting.notify import send_embed_to_user
 from bot.database.connection import Database
+
+logger = logging.getLogger(__name__)
 
 async def get_watch_from_alert(alert):
     db         = await Database().get_connection()
@@ -20,10 +23,10 @@ async def get_watch_from_alert(alert):
         )
         return await cursor.fetchone()
     except aiosqlite.OperationalError as e:
-        logging.exception(f"Failed to fetch products to poll: {e}")
+        logger.exception(f"Failed to fetch products to poll: {e}")
         return []
     except aiosqlite.Error as e:
-        logging.exception(f"Database error: {e}")
+        logger.exception(f"Database error: {e}")
         return []
 
 
@@ -40,15 +43,15 @@ async def get_alerts(product_id):
             (product_id,)
         )
     except aiosqlite.OperationalError as e:
-        logging.exception(f"Failed to fetch products to poll: {e}")
+        logger.exception(f"Failed to fetch products to poll: {e}")
         return []
     except aiosqlite.Error as e:
-        logging.exception(f"Database error: {e}")
+        logger.exception(f"Database error: {e}")
         return []
 
 
 """
-    check_alert()
+    should_notify_user()
         params:
             alert   = alert tuple which is obtained from an SQL search for the user's alert
             product = the data obtained from the scraping the data from the product's website
@@ -57,7 +60,7 @@ async def get_alerts(product_id):
             this function checks the alert and its status, sending a reset flag if the new data falls behind the trigger or 
             sending a notify flag if the new data is reaches or exceeds the trigger and if the alert hasn't been triggered yet.
 """
-async def check_alert(alert,product):
+async def should_notify_user(alert,product):
     price        = product["FinalPrice"]
     percentage   = product["Percentage"]
     availability = product["Available"]
@@ -92,11 +95,10 @@ async def check_alert(alert,product):
     return "dont"
 
 
-async def notify(bot,alert,product):
+async def notify(alert,product):
     watch      = await get_watch_from_alert(alert)
     channel_id = watch[2]
     user_id    = watch[0]
-    channel    = bot.get_channel(channel_id) or await bot.fetch_channel(channel_id)
     target     = alert[3]
 
     embed = discord.Embed(
@@ -112,7 +114,7 @@ async def notify(bot,alert,product):
         case "availability":
             embed.description = f"[{product["Name"]}]({product["URL"]}) is now {'available!' if product["Available"] else 'unavailable.'}"
     
-    await channel.send(content=f"<@{user_id}>", embed=embed)
+    await send_embed_to_user(channel_id,user_id,embed)
 
 
 async def set_alerts_triggered_field(alert,truefalse):
@@ -130,21 +132,21 @@ async def set_alerts_triggered_field(alert,truefalse):
         await db.commit()
     except aiosqlite.Error as e:
         await db.rollback()
-        logging.exception(f"Database error: {e}")
+        logger.exception(f"Database error: {e}")
     
 
-async def notify_eligible_users(bot,product,scraped_data):
+async def notify_eligible_users(product,scraped_data):
     alerts = await get_alerts(product[0])
 
     for alert in alerts:
-        should_notify = await check_alert(alert,scraped_data)
+        should_notify = await should_notify_user(alert,scraped_data)
 
         match should_notify:
             case "notify":
                 try:
-                    await notify(bot,alert,scraped_data)
+                    await notify(alert,scraped_data)
                     await set_alerts_triggered_field(alert,True)
                 except discord.DiscordException as e:
-                    logging.exception(f"Failed to notify for alert {alert[0]}: {e}")
+                    logger.exception(f"Failed to notify for alert {alert[0]}: {e}")
             case "reset":
                 await set_alerts_triggered_field(alert,False)

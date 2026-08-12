@@ -4,6 +4,7 @@ import logging
 from bot.database.connection import Database
 from bot.database.queries import get_product
 
+logger = logging.getLogger(__name__)
 async def alert_exists(url,user_id,target):
     db = await Database().get_connection()
     
@@ -14,10 +15,10 @@ async def alert_exists(url,user_id,target):
         async with db.execute("SELECT * FROM alerts WHERE product_id = ? AND user_id = ? AND target = ?",(product_id,user_id,target)) as cursor:
             return await cursor.fetchone()
     except IndexError as e:
-        logging.exception(f"Index Error: {e}")
+        logger.exception(f"Index Error: {e}")
         raise
     except aiosqlite.Error as e:
-        logging.exception(f"Database error: {e}")
+        logger.exception(f"Database error: {e}")
         raise
 
 async def add_alert_to_db(url,user_id,target,trigger):
@@ -36,14 +37,14 @@ async def add_alert_to_db(url,user_id,target,trigger):
         )
         await db.commit()  
     except IndexError as e:
-        logging.exception(f"Index Error: {e}")
+        logger.exception(f"Index Error: {e}")
         raise
     except aiosqlite.IntegrityError:
-        logging.exception("Database error: Alert already exists")
+        logger.exception("Database error: Alert already exists")
         raise
     except aiosqlite.Error as e:
         await db.rollback()
-        logging.exception(f"Database error: {e}")
+        logger.exception(f"Database error: {e}")
         raise
 
 async def update_alert_in_db(url,user_id,target,trigger):
@@ -63,11 +64,11 @@ async def update_alert_in_db(url,user_id,target,trigger):
         )
         await db.commit()  
     except IndexError as e:
-        logging.exception(f"Index Error: {e}")
+        logger.exception(f"Index Error: {e}")
         raise
     except aiosqlite.Error as e:
         await db.rollback()
-        logging.exception(f"Database error: {e}\nAlert not updated")
+        logger.exception(f"Database error: {e}\nAlert not updated")
         raise
 
 async def remove_alert_in_db(url,user_id,target):
@@ -91,10 +92,10 @@ async def remove_alert_in_db(url,user_id,target):
         else:
             return "Not Found"
     except IndexError as e:
-        logging.exception(f"Index Error: {e}")
+        logger.exception(f"Index Error: {e}")
     except aiosqlite.Error as e:
         await db.rollback()
-        logging.exception(f"Database Error: {e}")
+        logger.exception(f"Database Error: {e}")
 
     return "Error"
     
@@ -119,9 +120,9 @@ async def add_alert(url,user_id,target,trigger):
             await add_alert_to_db(url,user_id,target,trigger)
             return "Added Alert"
     except IndexError as e:
-        logging.exception(f"Index Error: {e}")
+        logger.exception(f"Index Error: {e}")
     except aiosqlite.Error as e:
-        logging.exception(f"Database Error: {e}")
+        logger.exception(f"Database Error: {e}")
 
     return "Error"
     
