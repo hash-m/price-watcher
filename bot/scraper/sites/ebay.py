@@ -1,8 +1,8 @@
-from bot.scraper.fetcher  import fetch_json
-from bot.exceptions       import ExtractionError,FetchingError
-from bot.database.queries import get_init_price
-from urllib.parse         import urlparse
-from bot.config           import EBAY_TOKEN
+from bot.scraper.fetcher          import fetch_json
+from bot.exceptions               import ExtractionError,FetchingError
+from bot.database.queries         import get_init_price
+from urllib.parse                 import urlparse
+from bot.access_tokens.ebay_token import EbayTokenManager
 
 def get_itemid(url):
     if isinstance(url,str):
@@ -18,8 +18,11 @@ async def fetch(url):
     if item_id is None:
         raise FetchingError("ebay",url,"Invalid URL (Can't find itemid)")
 
+    manager = EbayTokenManager()
+    key = await manager.get_key()
+
     headers = {
-        "Authorization"            : f"Bearer {EBAY_TOKEN}",
+        "Authorization"            : f"Bearer {key}",
         "X-EBAY-C-MARKETPLACE-ID"  : "EBAY_GB",
         "Accept-Language"          : "en-GB"
     }

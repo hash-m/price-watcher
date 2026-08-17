@@ -108,7 +108,7 @@ async def notify(alert,product):
     
     match target:
         case "price":
-            embed.description = f"[{product["Name"]}'s]({product["URL"]}) price has reduced to £{product["FinalPrice"]}!"
+            embed.description = f"[{product["Name"]}'s]({product["URL"]}) is now being sold at £{product["FinalPrice"]:.2f}!"
         case "percentage":
             embed.description = f"[{product["Name"]}]({product["URL"]}) is now {product["Percentage"]}% off!"
         case "availability":

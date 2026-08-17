@@ -5,8 +5,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-EBAY_TOKEN    = os.getenv("EBAY_TOKEN")
+DISCORD_TOKEN      = os.getenv("DISCORD_TOKEN")
+EBAY_CLIENT_ID     = os.getenv("EBAY_CLIENT_ID")
+EBAY_CLIENT_SECRET = os.getenv("EBAY_CLIENT_SECRET")
 
 POLL_INTERVAL = 1800 #30 mins
 
