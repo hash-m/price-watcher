@@ -1,39 +1,15 @@
 import discord
 import math
-import asyncio
 
-from bot.utils.helper_functions            import send_error_msg
-from bot.analytics.charts import convert_chart_to_png,create_history_chart
-from bot.analytics.stats  import get_stats
-from bot.database.queries import get_snapshots,get_product
-from discord.ext          import commands
-from discord              import app_commands
+from bot.utils.helper_functions import send_error_msg
+from bot.analytics.stats        import get_stats
+from bot.database.queries       import get_snapshots,get_product
+from discord.ext                import commands
+from discord                    import app_commands
 
 class PricesCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
-    @app_commands.command(name="price", description="Retrieve the current price of a product")
-    async def price(self, interaction : discord.Interaction, url : str):
-        product = await get_product(url)
-
-        if not product:
-            await send_error_msg(interaction,"Product isn't being watched.","Fail")
-            return
-
-        snapshots = await get_snapshots(product[0])
-        newest_snapshot = snapshots[0] if snapshots else None
-
-        if newest_snapshot:
-            embed = discord.Embed(color=discord.Colour.green())
-            embed.set_author(name=interaction.user.display_name,icon_url=interaction.user.display_avatar.url)
-            embed.title = f"{product[1] if product[1] else "Price"}"
-            embed.url   = product[2]
-            embed.description = f"Current Price: £{newest_snapshot[2]:.2f}"
-
-            await interaction.response.send_message(embed=embed)
-        else:
-            await send_error_msg(interaction,"No price is available yet. Try again later.","Fail")
         
     @app_commands.command(name="stats", description="Some statistics of a product")
     async def stats(self, interaction : discord.Interaction, url : str):

@@ -63,6 +63,7 @@ async def on_ready():
         await bot.load_extension("bot.cogs.watching")
         await bot.load_extension("bot.cogs.alerts")
         await bot.load_extension("bot.cogs.prices")
+        await bot.load_extension("bot.cogs.get")
     except Exception as e:
         logger.exception(f"Failed to load cog(s): {e}")
 
