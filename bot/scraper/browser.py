@@ -37,11 +37,14 @@ async def close_browser():
     if CONTEXT_INSTANCE:
         logger.info("Closing context...")
         await CONTEXT_INSTANCE.close()
+        CONTEXT_INSTANCE = None
 
     if BROWSER_INSTANCE:
         logger.info("Closing browser...")
         await BROWSER_INSTANCE.close()
+        BROWSER_INSTANCE = None
 
     if PLAYWRIGHT_INSTANCE:
         logger.info("Stopping playwright...")
         await PLAYWRIGHT_INSTANCE.stop()
+        PLAYWRIGHT_INSTANCE = None

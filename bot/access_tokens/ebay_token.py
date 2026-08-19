@@ -3,20 +3,20 @@ import aiohttp
 import base64
 import logging
 
-from bot.config import EBAY_CLIENT_ID,EBAY_CLIENT_SECRET
+from bot.config import EBAY_CLIENT_ID, EBAY_CLIENT_SECRET
 
 logger = logging.getLogger(__name__)
 
+
 class EbayTokenManager():
     _instance = None
-    
+
     def __new__(cls):
         if cls._instance is None:
-            cls._instance            = super().__new__(cls)
-            cls._instance.key        = None
+            cls._instance = super().__new__(cls)
+            cls._instance.key = None
             cls._instance.expiration = 0
         return cls._instance
-
 
     async def get_key(self):
         if not self.is_key_valid():
